@@ -9,7 +9,7 @@ import unicam.hackhub.model.staff.Mentore;
 import unicam.hackhub.model.staff.Organizzatore;
 import unicam.hackhub.model.submission.Valutazione;
 import unicam.hackhub.model.team.Team;
-import unicam.hackhub.model.user.Utente;
+import unicam.hackhub.model.team.MembroTeam;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,7 +60,7 @@ class HandlerHackathonTest {
     @Test
     @DisplayName("Iscrizione team possibile in stato IN_ISCRIZIONE")
     void iscrizioneTeam() {
-        Utente creatore = new Utente("user1", "user1@test.it", "pass");
+        MembroTeam creatore = new MembroTeam("user1", "user1@test.it", "pass");
         Team team = new Team("TeamAlpha", creatore);
 
         hackathon.aggiungiTeam(team);
@@ -73,7 +73,7 @@ class HandlerHackathonTest {
     void iscrizioneNonPermessa() {
         hackathon.avanzaStato(); // IN_CORSO
 
-        Utente creatore = new Utente("user1", "user1@test.it", "pass");
+        MembroTeam creatore = new MembroTeam("user1", "user1@test.it", "pass");
         Team team = new Team("TeamAlpha", creatore);
 
         assertThrows(IllegalStateException.class, () -> hackathon.aggiungiTeam(team));

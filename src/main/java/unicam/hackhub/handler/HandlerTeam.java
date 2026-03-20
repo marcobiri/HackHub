@@ -1,7 +1,9 @@
 package unicam.hackhub.handler;
 
 import org.springframework.stereotype.Service;
+import unicam.hackhub.model.factory.UtenteFactory;
 import unicam.hackhub.model.team.InvitoTeam;
+import unicam.hackhub.model.team.MembroTeam;
 import unicam.hackhub.model.team.Team;
 import unicam.hackhub.model.user.Utente;
 import unicam.hackhub.repository.TeamRepository;
@@ -29,8 +31,17 @@ public class HandlerTeam {
      * Crea un nuovo team. L'utente creatore diventa automaticamente membro.
      */
     public Team creaTeam(String nome, Long creatoreId) {
-        Utente creatore = utenteRepository.findById(Objects.requireNonNull(creatoreId))
+        Utente utente = utenteRepository.findById(Objects.requireNonNull(creatoreId))
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato con ID: " + creatoreId));
+
+        MembroTeam creatore;
+        if (utente instanceof MembroTeam mt) {
+            creatore = mt;
+        } else {
+            creatore = UtenteFactory.creaMembroTeam(
+                    utente.getUsername(), utente.getEmail(), utente.getPassword());
+            creatore.setId(utente.getId());
+        }
 
         Team team = new Team(nome, creatore);
         return teamRepository.save(team);

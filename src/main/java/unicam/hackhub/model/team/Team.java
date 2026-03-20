@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * Gruppo di utenti che partecipa a uno o più hackathon.
+ * Ogni utente può appartenere a un solo team alla volta.
  */
 @Entity
 public class Team {
@@ -23,35 +24,37 @@ public class Team {
     @JoinColumn(name = "creatore_id")
     private Utente creatore;
 
-    @ManyToMany
-    @JoinTable(name = "team_membri", joinColumns = @JoinColumn(name = "team_id"), inverseJoinColumns = @JoinColumn(name = "utente_id"))
-    private List<Utente> membri = new ArrayList<>();
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MembroTeam> membri = new ArrayList<>();
 
     public Team() {
     }
 
-    public Team(String nome, Utente creatore) {
+    public Team(String nome, MembroTeam creatore) {
         this.nome = nome;
         this.creatore = creatore;
+        creatore.setTeam(this);
         this.membri.add(creatore);
     }
 
     /**
      * Aggiunge un membro al team.
-     *
+     * 
      * @throws IllegalStateException se il team ha raggiunto la dimensione massima
      */
-    public void aggiungiMembro(Utente utente, int maxDimensione) {
+    public void aggiungiMembro(MembroTeam membro, int maxDimensione) {
         if (membri.size() >= maxDimensione) {
             throw new IllegalStateException("Il team ha raggiunto la dimensione massima: " + maxDimensione);
         }
-        if (!membri.contains(utente)) {
-            membri.add(utente);
+        if (!membri.contains(membro)) {
+            membro.setTeam(this);
+            membri.add(membro);
         }
     }
 
-    public void rimuoviMembro(Utente utente) {
-        membri.remove(utente);
+    public void rimuoviMembro(MembroTeam membro) {
+        membri.remove(membro);
+        membro.setTeam(null);
     }
 
     // --- Getters & Setters ---
@@ -80,11 +83,11 @@ public class Team {
         this.creatore = creatore;
     }
 
-    public List<Utente> getMembri() {
+    public List<MembroTeam> getMembri() {
         return membri;
     }
 
-    public void setMembri(List<Utente> membri) {
+    public void setMembri(List<MembroTeam> membri) {
         this.membri = membri;
     }
 }
