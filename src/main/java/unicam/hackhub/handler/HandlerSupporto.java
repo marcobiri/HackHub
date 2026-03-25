@@ -94,4 +94,53 @@ public class HandlerSupporto {
                 .filter(s -> s.getHackathon().getId().equals(hackathonId))
                 .toList();
     }
+
+    /**
+     * L'organizzatore prende in carico una segnalazione.
+     * Transizione: APERTA → IN_REVISIONE.
+     *
+     * @param segnalazioneId ID della segnalazione
+     * @return la segnalazione aggiornata
+     */
+    public SegnalazioneViolazione prendiInCaricoSegnalazione(Long segnalazioneId) {
+        SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
+        segnalazione.prendiInCarico();
+        return segnalazione;
+    }
+
+    /**
+     * L'organizzatore conferma la violazione segnalata.
+     * Transizione: IN_REVISIONE → CONFERMATA.
+     *
+     * @param segnalazioneId ID della segnalazione
+     * @return la segnalazione aggiornata
+     */
+    public SegnalazioneViolazione confermaSegnalazione(Long segnalazioneId) {
+        SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
+        segnalazione.conferma();
+        return segnalazione;
+    }
+
+    /**
+     * L'organizzatore rigetta la segnalazione.
+     * Transizione: IN_REVISIONE → RIGETTATA.
+     *
+     * @param segnalazioneId ID della segnalazione
+     * @return la segnalazione aggiornata
+     */
+    public SegnalazioneViolazione rigettaSegnalazione(Long segnalazioneId) {
+        SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
+        segnalazione.rigetta();
+        return segnalazione;
+    }
+
+    /**
+     * Cerca una segnalazione per ID nella lista interna.
+     */
+    private SegnalazioneViolazione findSegnalazioneById(Long id) {
+        return segnalazioni.stream()
+                .filter(s -> s.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Segnalazione non trovata con ID: " + id));
+    }
 }

@@ -60,6 +60,48 @@ public class SegnalazioneViolazione {
         this.dataSegnalazione = LocalDateTime.now();
     }
 
+    /**
+     * L'organizzatore prende in carico la segnalazione.
+     * Transizione: APERTA → IN_REVISIONE.
+     *
+     * @throws IllegalStateException se la segnalazione non è in stato APERTA
+     */
+    public void prendiInCarico() {
+        if (this.stato != StatoSegnalazione.APERTA) {
+            throw new IllegalStateException(
+                    "La segnalazione non è in stato APERTA. Stato attuale: " + this.stato);
+        }
+        this.stato = StatoSegnalazione.IN_REVISIONE;
+    }
+
+    /**
+     * L'organizzatore conferma la violazione segnalata.
+     * Transizione: IN_REVISIONE → CONFERMATA.
+     *
+     * @throws IllegalStateException se la segnalazione non è in stato IN_REVISIONE
+     */
+    public void conferma() {
+        if (this.stato != StatoSegnalazione.IN_REVISIONE) {
+            throw new IllegalStateException(
+                    "La segnalazione non è in stato IN_REVISIONE. Stato attuale: " + this.stato);
+        }
+        this.stato = StatoSegnalazione.CONFERMATA;
+    }
+
+    /**
+     * L'organizzatore rigetta la segnalazione.
+     * Transizione: IN_REVISIONE → RIGETTATA.
+     *
+     * @throws IllegalStateException se la segnalazione non è in stato IN_REVISIONE
+     */
+    public void rigetta() {
+        if (this.stato != StatoSegnalazione.IN_REVISIONE) {
+            throw new IllegalStateException(
+                    "La segnalazione non è in stato IN_REVISIONE. Stato attuale: " + this.stato);
+        }
+        this.stato = StatoSegnalazione.RIGETTATA;
+    }
+
     // --- Getters & Setters ---
 
     public Long getId() {
