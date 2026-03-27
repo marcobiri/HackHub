@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import unicam.hackhub.handler.HandlerHackathon;
 import unicam.hackhub.handler.HandlerTeam;
+import unicam.hackhub.model.team.InvitoTeam;
 import unicam.hackhub.model.team.Team;
 
 import java.util.List;
@@ -63,5 +64,43 @@ public class TeamController {
         Team team = handlerTeam.getTeamById(teamId);
         handlerHackathon.iscriviTeam(hackathonId, team);
         return ResponseEntity.ok("Team iscritto con successo all'hackathon.");
+    }
+
+    /**
+     * POST /api/team/{teamId}/invita — invia un invito a un utente.
+     * Body: mittenteId, destinatarioId
+     */
+    @PostMapping("/{teamId}/invita")
+    public ResponseEntity<InvitoTeam> invitaUtente(@PathVariable Long teamId,
+            @RequestBody Map<String, Object> body) {
+        InvitoTeam invito = handlerTeam.invitaUtente(
+                teamId,
+                Long.parseLong(body.get("mittenteId").toString()),
+                Long.parseLong(body.get("destinatarioId").toString()));
+        return ResponseEntity.ok(invito);
+    }
+
+    /**
+     * GET /api/team/inviti/{utenteId} — lista gli inviti ricevuti da un utente.
+     */
+    @GetMapping("/inviti/{utenteId}")
+    public ResponseEntity<List<InvitoTeam>> getInviti(@PathVariable Long utenteId) {
+        return ResponseEntity.ok(handlerTeam.getInvitiPerUtente(utenteId));
+    }
+
+    /**
+     * PUT /api/team/inviti/{invitoId}/accetta — accetta un invito.
+     */
+    @PutMapping("/inviti/{invitoId}/accetta")
+    public ResponseEntity<InvitoTeam> accettaInvito(@PathVariable Long invitoId) {
+        return ResponseEntity.ok(handlerTeam.accettaInvito(invitoId));
+    }
+
+    /**
+     * PUT /api/team/inviti/{invitoId}/rifiuta — rifiuta un invito.
+     */
+    @PutMapping("/inviti/{invitoId}/rifiuta")
+    public ResponseEntity<InvitoTeam> rifiutaInvito(@PathVariable Long invitoId) {
+        return ResponseEntity.ok(handlerTeam.rifiutaInvito(invitoId));
     }
 }

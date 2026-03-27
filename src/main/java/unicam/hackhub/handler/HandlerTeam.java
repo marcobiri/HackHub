@@ -6,6 +6,7 @@ import unicam.hackhub.model.team.InvitoTeam;
 import unicam.hackhub.model.team.MembroTeam;
 import unicam.hackhub.model.team.Team;
 import unicam.hackhub.model.user.Utente;
+import unicam.hackhub.repository.InvitoTeamRepository;
 import unicam.hackhub.repository.TeamRepository;
 import unicam.hackhub.repository.UtenteRepository;
 
@@ -21,10 +22,14 @@ public class HandlerTeam {
 
     private final TeamRepository teamRepository;
     private final UtenteRepository utenteRepository;
+    private final InvitoTeamRepository invitoTeamRepository;
 
-    public HandlerTeam(TeamRepository teamRepository, UtenteRepository utenteRepository) {
+    public HandlerTeam(TeamRepository teamRepository,
+            UtenteRepository utenteRepository,
+            InvitoTeamRepository invitoTeamRepository) {
         this.teamRepository = teamRepository;
         this.utenteRepository = utenteRepository;
+        this.invitoTeamRepository = invitoTeamRepository;
     }
 
     /**
@@ -58,7 +63,54 @@ public class HandlerTeam {
         Utente destinatario = utenteRepository.findById(Objects.requireNonNull(destinatarioId))
                 .orElseThrow(() -> new IllegalArgumentException("Destinatario non trovato con ID: " + destinatarioId));
 
-        return new InvitoTeam(team, mittente, destinatario);
+        InvitoTeam invito = new InvitoTeam(team, mittente, destinatario);
+        return invitoTeamRepository.save(invito);
+    }
+
+    /**
+     * Accetta un invito: cambia lo stato a ACCETTATO e aggiunge
+     * il destinatario come membro del team.
+     */
+    public InvitoTeam accettaInvito(Long invitoId) {
+        InvitoTeam invito = invitoTeamRepository.findById(Objects.requireNonNull(invitoId))
+                .orElseThrow(() -> new IllegalArgumentException("Invito non trovato con ID: " + invitoId));
+
+        invito.accetta();
+
+        // Converti il destinatario in MembroTeam e aggiungilo al team
+        Utente destinatario = invito.getDestinatario();
+        MembroTeam nuovoMembro;
+        if (destinatario instanceof MembroTeam mt) {
+            nuovoMembro = mt;
+        } else {
+            nuovoMembro = UtenteFactory.creaMembroTeam(
+                    destinatario.getUsername(), destinatario.getEmail(), destinatario.getPassword());
+            nuovoMembro.setId(destinatario.getId());
+        }
+
+        Team team = invito.getTeam();
+        team.aggiungiMembro(nuovoMembro, Integer.MAX_VALUE);
+        teamRepository.save(team);
+
+        return invitoTeamRepository.save(invito);
+    }
+
+    /**
+     * Rifiuta un invito: cambia lo stato a RIFIUTATO.
+     */
+    public InvitoTeam rifiutaInvito(Long invitoId) {
+        InvitoTeam invito = invitoTeamRepository.findById(Objects.requireNonNull(invitoId))
+                .orElseThrow(() -> new IllegalArgumentException("Invito non trovato con ID: " + invitoId));
+
+        invito.rifiuta();
+        return invitoTeamRepository.save(invito);
+    }
+
+    /**
+     * Restituisce gli inviti ricevuti da un utente.
+     */
+    public List<InvitoTeam> getInvitiPerUtente(Long utenteId) {
+        return invitoTeamRepository.findByDestinatarioId(utenteId);
     }
 
     /**
