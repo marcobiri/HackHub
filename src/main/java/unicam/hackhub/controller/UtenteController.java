@@ -69,4 +69,20 @@ public class UtenteController {
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato: " + username));
         return ResponseEntity.ok(utente);
     }
+
+    /**
+     * POST /api/utente/login — effettua l'accesso alla piattaforma.
+     * Body: username, password
+     */
+    @PostMapping("/login")
+    public ResponseEntity<Utente> login(@RequestBody Map<String, String> body) {
+        Utente utente = utenteRepository.findByUsername(body.get("username"))
+                .orElseThrow(() -> new IllegalArgumentException("Username non trovato: " + body.get("username")));
+
+        if (!utente.getPassword().equals(body.get("password"))) {
+            throw new IllegalArgumentException("Password non corretta.");
+        }
+
+        return ResponseEntity.ok(utente);
+    }
 }
