@@ -25,8 +25,8 @@ public class HandlerTeam {
     private final InvitoTeamRepository invitoTeamRepository;
 
     public HandlerTeam(TeamRepository teamRepository,
-            UtenteRepository utenteRepository,
-            InvitoTeamRepository invitoTeamRepository) {
+                       UtenteRepository utenteRepository,
+                       InvitoTeamRepository invitoTeamRepository) {
         this.teamRepository = teamRepository;
         this.utenteRepository = utenteRepository;
         this.invitoTeamRepository = invitoTeamRepository;
@@ -75,10 +75,16 @@ public class HandlerTeam {
         InvitoTeam invito = invitoTeamRepository.findById(Objects.requireNonNull(invitoId))
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato con ID: " + invitoId));
 
+        // Verifica che l'utente non appartenga già a un team
+        Utente destinatario = invito.getDestinatario();
+        if (destinatario instanceof MembroTeam mt && mt.getTeam() != null) {
+            throw new IllegalStateException(
+                    "L'utente appartiene già a un team. Un utente può appartenere a un solo team alla volta.");
+        }
+
         invito.accetta();
 
         // Converti il destinatario in MembroTeam e aggiungilo al team
-        Utente destinatario = invito.getDestinatario();
         MembroTeam nuovoMembro;
         if (destinatario instanceof MembroTeam mt) {
             nuovoMembro = mt;
