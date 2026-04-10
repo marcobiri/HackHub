@@ -2,6 +2,7 @@ package unicam.hackhub.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import unicam.hackhub.model.factory.UtenteFactory;
 import unicam.hackhub.model.user.Utente;
 import unicam.hackhub.repository.UtenteRepository;
 
