@@ -2,6 +2,8 @@
 
 Piattaforma web per la gestione di hackathon, sviluppata con **Spring Boot 3.4.3** e **Java 21**.
 
+Progetto per il corso di **Ingegneria del Software** — Università di Camerino (AA 2025/26).
+
 ## Funzionalità
 
 - **Gestione hackathon** — creazione, configurazione staff, iscrizione team, sottomissioni, valutazioni, proclamazione vincitore
@@ -160,6 +162,10 @@ src/main/java/unicam/hackhub/
 └── service/        ← Servizi esterni (Calendar, Payment)
 ```
 
+## Diagrammi UML
+
+I diagrammi UML del progetto (Use Case, Domain, Design Class) sono disponibili nella cartella `Visual Paradigm/` nel file `Hackaton.vpp`, apribile con [Visual Paradigm](https://www.visual-paradigm.com/).
+
 ## Test
 
 Il progetto include 4 classi di test:
@@ -170,3 +176,7 @@ Il progetto include 4 classi di test:
 | `HandlerHackathonTest` | Test della logica business per la gestione degli hackathon |
 | `HandlerSupportoTest`  | Test del supporto e gestione segnalazioni                  |
 | `UtenteFactoryTest`    | Verifica la creazione di staff tramite Factory Pattern     |
+
+## Licenza
+
+Distribuito con licenza [MIT](LICENSE).
