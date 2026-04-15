@@ -54,7 +54,7 @@ public class UtenteController {
             throw new IllegalArgumentException("Email già in uso: " + body.get("email"));
         }
 
-        Utente utente = new Utente(
+        Utente utente = UtenteFactory.creaUtente(
                 body.get("username"),
                 body.get("email"),
                 body.get("password"));
