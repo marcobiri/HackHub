@@ -45,6 +45,7 @@ public class UtenteController {
      * POST /api/utente — registra un nuovo utente.
      * Body: username, email, password
      */
+    @SuppressWarnings("null")
     @PostMapping
     public ResponseEntity<Utente> registraUtente(@RequestBody Map<String, String> body) {
         if (utenteRepository.existsByUsername(body.get("username"))) {
@@ -58,7 +59,7 @@ public class UtenteController {
                 body.get("username"),
                 body.get("email"),
                 body.get("password"));
-        return ResponseEntity.ok(utenteRepository.save(utente));
+        return ResponseEntity.ok(Objects.requireNonNull(utenteRepository.save(utente)));
     }
 
     /**

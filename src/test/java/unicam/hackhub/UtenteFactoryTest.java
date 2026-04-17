@@ -9,6 +9,8 @@ import unicam.hackhub.model.user.Utente;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Objects;
+
 /**
  * Test per il Design Pattern Factory — Creazione Utenti/Staff.
  * Verifica la creazione corretta dei diversi tipi di utente tramite
@@ -95,5 +97,18 @@ class UtenteFactoryTest {
 
         assertInstanceOf(Mentore.class, staff);
         assertEquals(RuoloStaff.MENTORE, staff.getRuolo());
+    }
+
+    @Test
+    @DisplayName("Objects.requireNonNull lancia eccezione su utente null")
+    void requireNonNullLanciaEccezioneSuNull() {
+        assertThrows(NullPointerException.class, () -> Objects.requireNonNull(null));
+    }
+
+    @Test
+    @DisplayName("La factory non restituisce mai un utente null")
+    void factoryNonRestituisceNull() {
+        Utente utente = UtenteFactory.creaUtente("test", "test@test.it", "pass");
+        assertNotNull(Objects.requireNonNull(utente));
     }
 }
