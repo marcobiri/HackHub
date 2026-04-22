@@ -45,7 +45,6 @@ public class UtenteController {
      * POST /api/utente — registra un nuovo utente.
      * Body: username, email, password
      */
-    @SuppressWarnings("null")
     @PostMapping
     public ResponseEntity<Utente> registraUtente(@RequestBody Map<String, String> body) {
         if (utenteRepository.existsByUsername(body.get("username"))) {

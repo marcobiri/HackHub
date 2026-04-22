@@ -30,7 +30,6 @@ public class StaffController {
      * POST /api/staff — crea un nuovo membro dello staff usando il Factory Pattern.
      * Body: username, email, password, ruolo (ORGANIZZATORE|GIUDICE|MENTORE)
      */
-    @SuppressWarnings("null")
     @PostMapping
     public ResponseEntity<Utente> creaStaff(@RequestBody Map<String, String> body) {
         RuoloStaff ruolo = RuoloStaff.valueOf(body.get("ruolo").toUpperCase());
