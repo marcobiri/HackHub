@@ -1,5 +1,6 @@
 package unicam.hackhub.model.team;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import unicam.hackhub.model.user.Utente;
 
@@ -24,14 +25,17 @@ public class InvitoTeam {
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnoreProperties({ "membri", "creatore" })
     private Team team;
 
     @ManyToOne
     @JoinColumn(name = "mittente_id", nullable = false)
+    @JsonIgnoreProperties({ "team" })
     private Utente mittente;
 
     @ManyToOne
     @JoinColumn(name = "destinatario_id", nullable = false)
+    @JsonIgnoreProperties({ "team" })
     private Utente destinatario;
 
     @Enumerated(EnumType.STRING)

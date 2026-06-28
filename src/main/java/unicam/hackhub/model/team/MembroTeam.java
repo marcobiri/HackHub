@@ -1,5 +1,6 @@
 package unicam.hackhub.model.team;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import unicam.hackhub.model.user.Utente;
 
@@ -11,6 +12,7 @@ import unicam.hackhub.model.user.Utente;
 @DiscriminatorValue("MEMBRO_TEAM")
 public class MembroTeam extends Utente {
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "team_id")
     private Team team;
