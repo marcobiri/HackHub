@@ -1,7 +1,8 @@
 package unicam.hackhub.handler;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
-import unicam.hackhub.model.factory.UtenteFactory;
+import org.springframework.transaction.annotation.Transactional;
 import unicam.hackhub.model.team.InvitoTeam;
 import unicam.hackhub.model.team.MembroTeam;
 import unicam.hackhub.model.team.Team;
@@ -23,18 +24,23 @@ public class HandlerTeam {
     private final TeamRepository teamRepository;
     private final UtenteRepository utenteRepository;
     private final InvitoTeamRepository invitoTeamRepository;
+    private final EntityManager entityManager;
 
     public HandlerTeam(TeamRepository teamRepository,
-                       UtenteRepository utenteRepository,
-                       InvitoTeamRepository invitoTeamRepository) {
+            UtenteRepository utenteRepository,
+            InvitoTeamRepository invitoTeamRepository,
+            EntityManager entityManager) {
         this.teamRepository = teamRepository;
         this.utenteRepository = utenteRepository;
         this.invitoTeamRepository = invitoTeamRepository;
+        this.entityManager = entityManager;
     }
 
     /**
      * Crea un nuovo team. L'utente creatore diventa automaticamente membro.
+     * Se l'utente è un Utente base, viene prima convertito in MembroTeam.
      */
+    @Transactional
     public Team creaTeam(String nome, Long creatoreId) {
         Utente utente = utenteRepository.findById(Objects.requireNonNull(creatoreId))
                 .orElseThrow(() -> new IllegalArgumentException("Utente non trovato con ID: " + creatoreId));
@@ -43,9 +49,13 @@ public class HandlerTeam {
         if (utente instanceof MembroTeam mt) {
             creatore = mt;
         } else {
-            creatore = UtenteFactory.creaMembroTeam(
-                    utente.getUsername(), utente.getEmail(), utente.getPassword());
-            creatore.setId(utente.getId());
+            // Converte il discriminator nel DB da UTENTE a MEMBRO_TEAM
+            utenteRepository.convertiInMembroTeam(utente.getId());
+            utenteRepository.flush();
+            entityManager.clear();
+            // Ricarica l'utente dal DB: ora JPA lo istanzia come MembroTeam
+            creatore = (MembroTeam) utenteRepository.findById(utente.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Errore durante la conversione dell'utente."));
         }
 
         Team team = new Team(nome, creatore);
@@ -71,6 +81,7 @@ public class HandlerTeam {
      * Accetta un invito: cambia lo stato a ACCETTATO e aggiunge
      * il destinatario come membro del team.
      */
+    @Transactional
     public InvitoTeam accettaInvito(Long invitoId) {
         InvitoTeam invito = invitoTeamRepository.findById(Objects.requireNonNull(invitoId))
                 .orElseThrow(() -> new IllegalArgumentException("Invito non trovato con ID: " + invitoId));
@@ -89,9 +100,16 @@ public class HandlerTeam {
         if (destinatario instanceof MembroTeam mt) {
             nuovoMembro = mt;
         } else {
-            nuovoMembro = UtenteFactory.creaMembroTeam(
-                    destinatario.getUsername(), destinatario.getEmail(), destinatario.getPassword());
-            nuovoMembro.setId(destinatario.getId());
+            // Converte il discriminator nel DB da UTENTE a MEMBRO_TEAM
+            utenteRepository.convertiInMembroTeam(destinatario.getId());
+            utenteRepository.flush();
+            entityManager.clear();
+            // Ricarica come MembroTeam
+            nuovoMembro = (MembroTeam) utenteRepository.findById(destinatario.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Errore durante la conversione dell'utente."));
+            // Ricarica anche l'invito e il team dopo il clear del contesto
+            invito = invitoTeamRepository.findById(invitoId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invito non trovato."));
         }
 
         Team team = invito.getTeam();
