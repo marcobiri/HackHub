@@ -7,9 +7,10 @@ import unicam.hackhub.model.support.RichiestaSupporto;
 import unicam.hackhub.model.support.SegnalazioneViolazione;
 import unicam.hackhub.model.team.Team;
 import unicam.hackhub.repository.HackathonRepository;
+import unicam.hackhub.repository.RichiestaSupportoRepository;
+import unicam.hackhub.repository.SegnalazioneViolazioneRepository;
 import unicam.hackhub.service.CalendarService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,15 +23,17 @@ public class HandlerSupporto {
 
     private final HackathonRepository hackathonRepository;
     private final CalendarService calendarService;
-
-    // In un'applicazione reale si userebbe un repository dedicato
-    private final List<RichiestaSupporto> richieste = new ArrayList<>();
-    private final List<SegnalazioneViolazione> segnalazioni = new ArrayList<>();
+    private final RichiestaSupportoRepository richiestaSupportoRepository;
+    private final SegnalazioneViolazioneRepository segnalazioneViolazioneRepository;
 
     public HandlerSupporto(HackathonRepository hackathonRepository,
-            CalendarService calendarService) {
+            CalendarService calendarService,
+            RichiestaSupportoRepository richiestaSupportoRepository,
+            SegnalazioneViolazioneRepository segnalazioneViolazioneRepository) {
         this.hackathonRepository = hackathonRepository;
         this.calendarService = calendarService;
+        this.richiestaSupportoRepository = richiestaSupportoRepository;
+        this.segnalazioneViolazioneRepository = segnalazioneViolazioneRepository;
     }
 
     /**
@@ -47,20 +50,21 @@ public class HandlerSupporto {
         }
 
         RichiestaSupporto richiesta = new RichiestaSupporto(messaggio, team, hackathon);
-        richieste.add(richiesta);
-        return richiesta;
+        return richiestaSupportoRepository.save(richiesta);
     }
 
     /**
      * Il mentore propone una call per una richiesta di supporto.
      * La prenotazione è delegata al sistema Calendar esterno.
      */
-    public RichiestaSupporto propostaCall(RichiestaSupporto richiesta, Mentore mentore) {
+    public RichiestaSupporto propostaCall(Long richiestaId, Mentore mentore) {
+        RichiestaSupporto richiesta = richiestaSupportoRepository.findById(Objects.requireNonNull(richiestaId))
+                .orElseThrow(() -> new IllegalArgumentException("Richiesta non trovata con ID: " + richiestaId));
         String calendarEventId = calendarService.prenotaCall(
                 mentore.getUsername(),
                 richiesta.getTeam().getNome());
         richiesta.propostaCall(mentore, calendarEventId);
-        return richiesta;
+        return richiestaSupportoRepository.save(richiesta);
     }
 
     /**
@@ -73,26 +77,21 @@ public class HandlerSupporto {
                 .orElseThrow(() -> new IllegalArgumentException("Hackathon non trovato con ID: " + hackathonId));
 
         SegnalazioneViolazione segnalazione = new SegnalazioneViolazione(descrizione, team, mentore, hackathon);
-        segnalazioni.add(segnalazione);
-        return segnalazione;
+        return segnalazioneViolazioneRepository.save(segnalazione);
     }
 
     /**
      * Restituisce le richieste di supporto per un hackathon.
      */
     public List<RichiestaSupporto> getRichiestePerHackathon(Long hackathonId) {
-        return richieste.stream()
-                .filter(r -> r.getHackathon().getId().equals(hackathonId))
-                .toList();
+        return richiestaSupportoRepository.findByHackathonId(hackathonId);
     }
 
     /**
      * Restituisce le segnalazioni per un hackathon.
      */
     public List<SegnalazioneViolazione> getSegnalazioniPerHackathon(Long hackathonId) {
-        return segnalazioni.stream()
-                .filter(s -> s.getHackathon().getId().equals(hackathonId))
-                .toList();
+        return segnalazioneViolazioneRepository.findByHackathonId(hackathonId);
     }
 
     /**
@@ -105,7 +104,7 @@ public class HandlerSupporto {
     public SegnalazioneViolazione prendiInCaricoSegnalazione(Long segnalazioneId) {
         SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
         segnalazione.prendiInCarico();
-        return segnalazione;
+        return segnalazioneViolazioneRepository.save(segnalazione);
     }
 
     /**
@@ -118,7 +117,7 @@ public class HandlerSupporto {
     public SegnalazioneViolazione confermaSegnalazione(Long segnalazioneId) {
         SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
         segnalazione.conferma();
-        return segnalazione;
+        return segnalazioneViolazioneRepository.save(segnalazione);
     }
 
     /**
@@ -131,16 +130,14 @@ public class HandlerSupporto {
     public SegnalazioneViolazione rigettaSegnalazione(Long segnalazioneId) {
         SegnalazioneViolazione segnalazione = findSegnalazioneById(segnalazioneId);
         segnalazione.rigetta();
-        return segnalazione;
+        return segnalazioneViolazioneRepository.save(segnalazione);
     }
 
     /**
-     * Cerca una segnalazione per ID nella lista interna.
+     * Cerca una segnalazione per ID nel database.
      */
     private SegnalazioneViolazione findSegnalazioneById(Long id) {
-        return segnalazioni.stream()
-                .filter(s -> s.getId().equals(id))
-                .findFirst()
+        return segnalazioneViolazioneRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new IllegalArgumentException("Segnalazione non trovata con ID: " + id));
     }
 }

@@ -66,16 +66,11 @@ public class SupportoController {
     @PostMapping("/richiesta/{id}/call")
     public ResponseEntity<RichiestaSupporto> propostaCall(@PathVariable Long id,
                                                           @RequestBody Map<String, Long> body) {
-        RichiestaSupporto richiesta = handlerSupporto.getRichiestePerHackathon(null).stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Richiesta non trovata con ID: " + id));
-
         Mentore mentore = (Mentore) utenteRepository
                 .findById(Objects.requireNonNull(body.get("mentoreId")))
                 .orElseThrow(() -> new IllegalArgumentException("Mentore non trovato"));
 
-        return ResponseEntity.ok(handlerSupporto.propostaCall(richiesta, mentore));
+        return ResponseEntity.ok(handlerSupporto.propostaCall(id, mentore));
     }
 
     /**
